@@ -167,3 +167,78 @@ export const escucharCalificacionesDocente =
   );
 
 };
+
+export const escucharCalificacionesAlumno =
+(
+  alumnoId: string,
+  callback: (datos: any[]) => void
+) => {
+
+  const q = query(
+
+    calificacionesRef,
+
+    where(
+      "alumnoId",
+      "==",
+      alumnoId
+    )
+
+  );
+
+  return onSnapshot(
+
+    q,
+
+    (snapshot) => {
+
+      callback(
+
+        snapshot.docs.map(
+          doc => ({
+
+            id: doc.id,
+
+            ...doc.data()
+
+          })
+        )
+
+      );
+
+    }
+
+  );
+
+};
+
+export const escucharCalificaciones =
+(
+  callback: (datos: any[]) => void
+) => {
+
+  return onSnapshot(
+
+    calificacionesRef,
+
+    (snapshot) => {
+
+      callback(
+
+        snapshot.docs.map(
+          doc => ({
+
+            id: doc.id,
+
+            ...doc.data()
+
+          })
+        )
+
+      );
+
+    }
+
+  );
+
+};

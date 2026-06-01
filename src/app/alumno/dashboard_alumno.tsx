@@ -135,7 +135,7 @@ export default function DashboardAlumno() {
       />
 
       <MenuCard
-        titulo="📝 Calificaciones"
+        titulo="📝 Mis Calificaciones"
         onPress={() =>
           router.push(
             "/alumno/calificaciones"

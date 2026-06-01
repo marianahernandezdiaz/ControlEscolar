@@ -111,7 +111,7 @@ export default function DashboardAdmin() {
       ruta: "/admin/calificaciones"
     },
     {
-      titulo: "AR",
+      titulo: "Acerca de",
       icono: <Ionicons name="cube" size={50} color="white" />,
       color: "#009688",
       ruta: "/admin/ar"
