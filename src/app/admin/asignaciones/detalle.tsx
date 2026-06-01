@@ -1,18 +1,18 @@
 import { useEffect, useState } from "react";
 
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    View
+  ScrollView,
+  StyleSheet,
+  Text,
+  View
 } from "react-native";
 
 import {
-    useLocalSearchParams
+  useLocalSearchParams
 } from "expo-router";
 
 import {
-    obtenerAsignacionPorId
+  obtenerAsignacionPorId
 } from "../../../services/asignacionService";
 
 export default function DetalleAsignacion() {
@@ -73,39 +73,60 @@ export default function DetalleAsignacion() {
       <View style={styles.card}>
 
         <Text style={styles.materia}>
-          {asignacion.materiaNombre}
+          📚 {asignacion.materiaNombre}
         </Text>
 
         <Item
-          label="Docente"
+          label="👨‍🏫 Docente"
           value={
             asignacion.docenteNombre
           }
         />
 
         <Item
-          label="Grupo"
+          label="🎓 Carrera"
+          value={
+            asignacion.carrera
+          }
+        />
+
+        <Item
+          label="📖 Semestre"
+          value={
+            asignacion.semestre
+          }
+        />
+
+        <Item
+          label="👥 Grupo"
           value={
             asignacion.grupo
           }
         />
 
         <Item
-          label="Periodo"
+          label="🪑 Cupo"
+          value={
+            `${asignacion.cupo} alumnos`
+          }
+        />
+
+        <Item
+          label="📅 Periodo"
           value={
             asignacion.periodo
           }
         />
 
         <Item
-          label="Estatus"
+          label="📌 Estatus"
           value={
             asignacion.estatus
           }
         />
 
         <Text style={styles.subtitulo}>
-          Horarios
+          🕒 Horarios
         </Text>
 
         {asignacion.horarios?.map(
@@ -129,7 +150,11 @@ export default function DetalleAsignacion() {
                 {horario.dia}
               </Text>
 
-              <Text>
+              <Text
+                style={
+                  styles.hora
+                }
+              >
 
                 {horario.horaInicio}
                 {" - "}
@@ -179,7 +204,9 @@ function Item({
 const styles = StyleSheet.create({
 
   container: {
-    padding: 20
+    padding: 20,
+    backgroundColor: "#F5F7FA",
+    flexGrow: 1
   },
 
   center: {
@@ -189,56 +216,81 @@ const styles = StyleSheet.create({
   },
 
   titulo: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: "bold",
     textAlign: "center",
-    marginBottom: 20
+    marginBottom: 25,
+    color: "#1E293B"
   },
 
   card: {
-    backgroundColor: "#fff",
-    borderRadius: 15,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
     padding: 20,
-    elevation: 4
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    shadowOffset: {
+      width: 0,
+      height: 3
+    }
   },
 
   materia: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "bold",
     color: "#1565C0",
     textAlign: "center",
-    marginBottom: 20
+    marginBottom: 25
   },
 
   item: {
-    marginBottom: 12
+    marginBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ECECEC",
+    paddingBottom: 8
   },
 
   label: {
-    fontWeight: "bold"
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 3
   },
 
   valor: {
-    fontSize: 16
+    fontSize: 17,
+    fontWeight: "600",
+    color: "#222"
   },
 
   subtitulo: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
     marginTop: 20,
-    marginBottom: 10
+    marginBottom: 15,
+    color: "#1565C0"
   },
 
   horarioCard: {
-    backgroundColor: "#F5F5F5",
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 10
+    backgroundColor: "#F7F9FC",
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 10,
+    borderLeftWidth: 5,
+    borderLeftColor: "#1565C0"
   },
 
   dia: {
+    fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 4
+    color: "#1565C0"
+  },
+
+  hora: {
+    marginTop: 5,
+    fontSize: 15,
+    color: "#444"
   }
 
 });

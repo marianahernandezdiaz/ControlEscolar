@@ -4,13 +4,22 @@ import {
   deleteDoc,
   doc,
   getDoc,
+  getDocs,
   onSnapshot,
-  updateDoc
+  query,
+  updateDoc,
+  where
 } from "firebase/firestore";
 
 import { db } from "./firebase";
 
 import { Docente } from "../models/Docentes";
+
+const docentesRef =
+  collection(
+    db,
+    "docentes"
+  );
 
 export const crearDocente = async (
   docente: Docente
@@ -135,3 +144,44 @@ export const obtenerDocentes = (
   );
 
 };
+
+
+export const obtenerDocentePorCorreo =
+  async (
+    correo: string
+  ) => {
+
+    const q = query(
+
+      docentesRef,
+
+      where(
+        "correo",
+        "==",
+        correo
+      )
+
+    );
+
+    const snapshot =
+      await getDocs(q);
+
+    if (
+      snapshot.empty
+    ) {
+
+      return null;
+
+    }
+
+    return {
+
+      id:
+        snapshot.docs[0].id,
+
+      ...snapshot.docs[0].data()
+
+    };
+
+  };
+

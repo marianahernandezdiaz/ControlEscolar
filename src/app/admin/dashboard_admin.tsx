@@ -18,12 +18,27 @@ import {
   escucharTotalAlumnos
 } from "../../services/alumnoService";
 
+import {
+  escucharTotalDocentes
+} from "../../services/docenteService";
+
+import {
+  escucharTotalAsignaciones
+} from "../../services/asignacionService";
+
 export default function DashboardAdmin() {
 
   const [totalAlumnos,
   setTotalAlumnos] =
   useState(0);
 
+  const [totalDocentes,
+  setTotalDocentes] =
+  useState(0);
+
+  const [totalAsignaciones,
+  setTotalAsignaciones] =
+  useState(0);
 
   useEffect(() => {
 
@@ -36,7 +51,31 @@ export default function DashboardAdmin() {
       }
     );
 
-  return () => unsubscribe();
+  const unsubscribeDocentes =
+    escucharTotalDocentes(
+      (total) => {
+
+        setTotalDocentes(total);
+
+      }
+    );
+
+  const unsubscribeAsignaciones =
+    escucharTotalAsignaciones(
+      (total) => {
+
+        setTotalAsignaciones(total);
+
+      }
+    );
+
+  return () => {
+
+    unsubscribe();
+    unsubscribeDocentes();
+    unsubscribeAsignaciones();
+
+  };
 
 }, []);
 
@@ -107,43 +146,69 @@ export default function DashboardAdmin() {
         <Text style={styles.resumenTitulo}>
           Resumen General
         </Text>
+<View style={styles.estadisticas}>
 
-        <View style={styles.estadisticas}>
+  <View style={styles.item}>
 
-          <View style={styles.item}>
-            <Ionicons
-              name="people"
-              size={28}
-              color="white"
-            />
-            <Text style={styles.textoStats}>
-              {totalAlumnos}
-            </Text>
-          </View>
+    <Ionicons
+      name="people"
+      size={28}
+      color="white"
+    />
 
-          <View style={styles.item}>
-            <Ionicons
-              name="school"
-              size={28}
-              color="white"
-            />
-            <Text style={styles.textoStats}>
-              0
-            </Text>
-          </View>
+    <Text style={styles.textoStats}>
+      {totalAlumnos}
+    </Text>
 
-          <View style={styles.item}>
-            <Ionicons
-              name="book"
-              size={28}
-              color="white"
-            />
-            <Text style={styles.textoStats}>
-              0
-            </Text>
-          </View>
+    <Text
+      style={styles.textoLabel}
+    >
+      Alumnos
+    </Text>
 
-        </View>
+  </View>
+
+  <View style={styles.item}>
+
+    <Ionicons
+      name="school"
+      size={28}
+      color="white"
+    />
+
+    <Text style={styles.textoStats}>
+      {totalDocentes}
+    </Text>
+
+    <Text
+      style={styles.textoLabel}
+    >
+      Docentes
+    </Text>
+
+  </View>
+
+  <View style={styles.item}>
+
+    <Ionicons
+      name="calendar"
+      size={28}
+      color="white"
+    />
+
+    <Text style={styles.textoStats}>
+      {totalAsignaciones}
+    </Text>
+
+    <Text
+      style={styles.textoLabel}
+    >
+      Asignaciones
+    </Text>
+
+  </View>
+
+</View>
       </View>
 
       {/* Tarjetas */}
@@ -253,6 +318,15 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     marginTop: 10
-  }
+  },
+  textoLabel: {
+
+  color: "#E3F2FD",
+
+  fontSize: 12,
+
+  marginTop: 4
+
+},
 
 });

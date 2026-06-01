@@ -12,6 +12,11 @@ import {
 import { Alumno } from "../models/Alumnos";
 import { db } from "./firebase";
 
+import {
+  query,
+  where
+} from "firebase/firestore";
+
 const alumnosRef = collection(db, "alumnos");
 
 export const crearAlumno = async (
@@ -125,3 +130,39 @@ export const actualizarAlumno = async (
   );
 
 };
+
+export const obtenerAlumnoPorCorreo =
+  async (
+    correo: string
+  ) => {
+
+    const q = query(
+      alumnosRef,
+      where(
+        "correo",
+        "==",
+        correo
+      )
+    );
+
+    const snapshot =
+      await getDocs(q);
+
+    if (
+      snapshot.empty
+    ) {
+
+      return null;
+
+    }
+
+    return {
+
+      id:
+        snapshot.docs[0].id,
+
+      ...snapshot.docs[0].data()
+
+    };
+
+  };

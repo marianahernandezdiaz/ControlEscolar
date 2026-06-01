@@ -1,27 +1,26 @@
 import { useEffect, useState } from "react";
 
 import {
-    Alert,
-    Button,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View
+  Alert,
+  Button,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View
 } from "react-native";
 
 import { Picker } from "@react-native-picker/picker";
 
-import Checkbox from "expo-checkbox";
 
 import {
-    router,
-    useLocalSearchParams
+  router,
+  useLocalSearchParams
 } from "expo-router";
 
 import {
-    actualizarMateria,
-    obtenerMateriaPorId
+  actualizarMateria,
+  obtenerMateriaPorId
 } from "../../../services/materiaService";
 
 export default function EditarMateria() {
@@ -50,10 +49,7 @@ export default function EditarMateria() {
     useState("Activa");
 
   const carreras = [
-    "Ingeniería Industrial",
-    "Ingeniería en Logística",
     "Ingeniería Mecatrónica",
-    "Ingeniería Química",
     "Ingeniería en Sistemas Computacionales"
   ];
 
@@ -101,6 +97,54 @@ export default function EditarMateria() {
 
   const guardarCambios =
     async () => {
+
+      if (!clave.trim()) {
+
+  Alert.alert(
+    "Error",
+    "Ingrese la clave."
+  );
+
+  return;
+
+}
+
+if (!nombre.trim()) {
+
+  Alert.alert(
+    "Error",
+    "Ingrese el nombre."
+  );
+
+  return;
+
+}
+
+if (
+  carrerasSeleccionadas.length === 0
+) {
+
+  Alert.alert(
+    "Error",
+    "Seleccione al menos una carrera."
+  );
+
+  return;
+
+}
+
+if (
+  Number(creditos) <= 0
+) {
+
+  Alert.alert(
+    "Error",
+    "Ingrese los créditos."
+  );
+
+  return;
+
+}
 
       try {
 
@@ -166,63 +210,71 @@ export default function EditarMateria() {
         style={styles.input}
       />
 
-      <Text style={styles.label}>
-        Carreras
+<Text style={styles.sectionTitle}>
+  Carreras
+</Text>
+
+<View style={styles.carrerasContainer}>
+
+  {carreras.map((carrera) => {
+
+    const seleccionado =
+
+      carrerasSeleccionadas.includes(
+        carrera
+      );
+
+    return (
+
+      <Text
+
+        key={carrera}
+
+        onPress={() => {
+
+          if (
+            seleccionado
+          ) {
+
+            setCarrerasSeleccionadas(
+
+              carrerasSeleccionadas.filter(
+                c => c !== carrera
+              )
+
+            );
+
+          } else {
+
+            setCarrerasSeleccionadas([
+              ...carrerasSeleccionadas,
+              carrera
+            ]);
+
+          }
+
+        }}
+
+        style={[
+
+          styles.carreraCard,
+
+          seleccionado &&
+          styles.carreraSeleccionada
+
+        ]}
+
+      >
+
+        {carrera}
+
       </Text>
 
-      {carreras.map((carrera) => (
+    );
 
-        <View
-          key={carrera}
-          style={styles.checkboxRow}
-        >
+  })}
 
-          <Checkbox
-
-            value={
-              carrerasSeleccionadas.includes(
-                carrera
-              )
-            }
-
-            onValueChange={
-              (checked) => {
-
-                if (checked) {
-
-                  setCarrerasSeleccionadas(
-                    prev => [
-                      ...prev,
-                      carrera
-                    ]
-                  );
-
-                } else {
-
-                  setCarrerasSeleccionadas(
-                    prev =>
-                      prev.filter(
-                        item =>
-                          item !== carrera
-                      )
-                  );
-
-                }
-
-              }
-            }
-
-          />
-
-          <Text
-            style={styles.checkboxText}
-          >
-            {carrera}
-          </Text>
-
-        </View>
-
-      ))}
+</View>
 
       <Text style={styles.label}>
         Semestre
@@ -237,7 +289,7 @@ export default function EditarMateria() {
           }
         >
 
-          {[1,2,3,4,5,6,7,8,9,10]
+          {[1,2,3,4,5,6,7,8,9]
           .map((sem) => (
 
             <Picker.Item
@@ -287,12 +339,15 @@ export default function EditarMateria() {
 
       </View>
 
-      <Button
-        title="Guardar Cambios"
-        onPress={
-          guardarCambios
-        }
-      />
+<View style={styles.buttonContainer}>
+
+  <Button
+    title="Guardar Cambios"
+    onPress={guardarCambios}
+    color="#2563EB"
+  />
+
+</View>
 
     </ScrollView>
 
@@ -302,16 +357,29 @@ export default function EditarMateria() {
 
 const styles = StyleSheet.create({
 
-  container: {
-    padding: 20
-  },
+container: {
 
-  titulo: {
-    fontSize: 28,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center"
-  },
+  padding: 20,
+
+  paddingBottom: 50,
+
+  backgroundColor: "#F8FAFC"
+
+},
+
+titulo: {
+
+  fontSize: 32,
+
+  fontWeight: "bold",
+
+  color: "#0F172A",
+
+  textAlign: "center",
+
+  marginBottom: 25
+
+},
 
   label: {
     fontSize: 16,
@@ -320,21 +388,35 @@ const styles = StyleSheet.create({
   },
 
   input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 12,
-    backgroundColor: "#fff"
-  },
 
-  picker: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 10,
-    marginBottom: 12,
-    backgroundColor: "#fff"
-  },
+  borderWidth: 1,
+
+  borderColor: "#CBD5E1",
+
+  borderRadius: 12,
+
+  padding: 14,
+
+  marginBottom: 14,
+
+  backgroundColor: "#FFFFFF",
+
+  fontSize: 15
+
+},
+picker: {
+
+  borderWidth: 1,
+
+  borderColor: "#CBD5E1",
+
+  borderRadius: 12,
+
+  marginBottom: 14,
+
+  backgroundColor: "#FFFFFF"
+
+},
 
   checkboxRow: {
     flexDirection: "row",
@@ -344,6 +426,65 @@ const styles = StyleSheet.create({
 
   checkboxText: {
     marginLeft: 10
-  }
+  },
+  sectionTitle: {
+
+  fontSize: 18,
+
+  fontWeight: "700",
+
+  color: "#1E293B",
+
+  marginBottom: 10,
+
+  marginTop: 10
+
+},
+
+carrerasContainer: {
+
+  gap: 10,
+
+  marginBottom: 20
+
+},
+
+carreraCard: {
+
+  backgroundColor: "#FFFFFF",
+
+  borderWidth: 1,
+
+  borderColor: "#CBD5E1",
+
+  borderRadius: 12,
+
+  padding: 15,
+
+  color: "#334155"
+
+},
+
+carreraSeleccionada: {
+
+  backgroundColor: "#DBEAFE",
+
+  borderColor: "#2563EB",
+
+  color: "#2563EB",
+
+  fontWeight: "bold"
+
+},
+
+buttonContainer: {
+
+  marginTop: 20,
+
+  borderRadius: 12,
+
+  overflow: "hidden"
+
+}
 
 });

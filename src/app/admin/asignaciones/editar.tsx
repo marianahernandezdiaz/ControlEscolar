@@ -1,35 +1,34 @@
 import { useEffect, useState } from "react";
 
 import {
-    Alert,
-    Button,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 
 import { Picker } from "@react-native-picker/picker";
 
 import {
-    router,
-    useLocalSearchParams
+  router,
+  useLocalSearchParams
 } from "expo-router";
 
 import {
-    actualizarAsignacion,
-    obtenerAsignaciones,
-    obtenerAsignacionPorId
+  actualizarAsignacion,
+  obtenerAsignaciones,
+  obtenerAsignacionPorId
 } from "../../../services/asignacionService";
 
 import {
-    obtenerDocentes
+  obtenerDocentes
 } from "../../../services/docenteService";
 
 import {
-    obtenerMaterias
+  obtenerMaterias
 } from "../../../services/materiaService";
 
 export default function EditarAsignacion() {
@@ -59,9 +58,6 @@ export default function EditarAsignacion() {
     setGrupo] =
     useState("");
 
-  const [periodo,
-    setPeriodo] =
-    useState("");
 
   const [horarios,
     setHorarios] =
@@ -120,38 +116,58 @@ export default function EditarAsignacion() {
 
   }, []);
 
-  const cargarAsignacion =
-    async () => {
+  const [carrera,
+  setCarrera] =
+  useState("");
 
-      const asignacion =
-        await obtenerAsignacionPorId(
-          id as string
-        );
+const [cupo,
+  setCupo] =
+  useState("");
 
-      if (!asignacion) return;
+const [estatus,
+  setEstatus] =
+  useState("Activa");
 
-      setDocenteId(
-        asignacion.docenteId
+const cargarAsignacion =
+  async () => {
+
+    const asignacion =
+      await obtenerAsignacionPorId(
+        id as string
       );
 
-      setMateriaId(
-        asignacion.materiaId
-      );
+    if (!asignacion) return;
 
-      setGrupo(
-        asignacion.grupo
-      );
+    setDocenteId(
+      asignacion.docenteId || ""
+    );
 
-      setPeriodo(
-        asignacion.periodo
-      );
+    setMateriaId(
+      asignacion.materiaId || ""
+    );
 
-      setHorarios(
-        asignacion.horarios || []
-      );
+    setGrupo(
+      asignacion.grupo || ""
+    );
 
-    };
 
+    setHorarios(
+      asignacion.horarios || []
+    );
+
+    setCarrera(
+      asignacion.carrera || ""
+    );
+
+    setCupo(
+      asignacion.cupo?.toString() || ""
+    );
+
+    setEstatus(
+      asignacion.estatus || "Activa"
+    );
+
+  };
   const agregarHorario = () => {
 
     if (horaInicio >= horaFin) {
@@ -215,100 +231,168 @@ export default function EditarAsignacion() {
       );
 
     };
+const guardarCambios =
+  async () => {
 
-  const guardarCambios =
-    async () => {
+    try {
 
-      try {
+      const docente =
+        docentes.find(
+          d => d.id === docenteId
+        );
 
-        const docente =
-          docentes.find(
-            d => d.id === docenteId
-          );
+      const materia =
+        materias.find(
+          m => m.id === materiaId
+        );
 
-        const materia =
-          materias.find(
-            m => m.id === materiaId
-          );
+      if (!docente) {
 
-        if (!docente || !materia) {
+        Alert.alert(
+          "Error",
+          "Seleccione un docente."
+        );
 
-          Alert.alert(
-            "Error",
-            "Datos inválidos"
-          );
+        return;
 
-          return;
+      }
 
-        }
+      if (!materia) {
 
-        const carreraCompatible =
+        Alert.alert(
+          "Error",
+          "Seleccione una materia."
+        );
 
-          docente.carreras.some(
-            (c: string) =>
+        return;
 
-              materia.carreras.includes(
-                c
-              )
-          );
+      }
 
-        if (!carreraCompatible) {
+      if (!grupo.trim()) {
 
-          Alert.alert(
-            "Carrera incompatible"
-          );
+        Alert.alert(
+          "Error",
+          "Ingrese el grupo."
+        );
 
-          return;
+        return;
 
-        }
+      }
 
-        const otrasAsignaciones =
 
-          asignaciones.filter(
-            a =>
-              a.id !== id
-          );
+      if (!carrera.trim()) {
 
-        const asignacionesDocente =
+        Alert.alert(
+          "Error",
+          "Seleccione una carrera."
+        );
 
-          otrasAsignaciones.filter(
-            a =>
-              a.docenteId === docenteId
-          );
+        return;
 
-        for (const nuevoHorario of horarios) {
+      }
 
-          for (const asignacion of asignacionesDocente) {
+      if (
+        Number(cupo) <= 0
+      ) {
 
-            for (const existente of asignacion.horarios) {
+        Alert.alert(
+          "Error",
+          "Ingrese un cupo válido."
+        );
 
-              const mismoDia =
+        return;
 
-                existente.dia ===
-                nuevoHorario.dia;
+      }
 
-              const traslape =
+      if (
+        horarios.length === 0
+      ) {
 
-                nuevoHorario.horaInicio <
-                existente.horaFin
+        Alert.alert(
+          "Error",
+          "Agregue al menos un horario."
+        );
 
-                &&
+        return;
 
-                nuevoHorario.horaFin >
-                existente.horaInicio;
+      }
 
-              if (
-                mismoDia &&
-                traslape
-              ) {
+      const carreraCompatible =
 
-                Alert.alert(
-                  "Conflicto de horario"
-                );
+        docente.carreras?.some(
+          (c: string) =>
 
-                return;
+            materia.carreras?.includes(
+              c
+            )
+        );
 
-              }
+      if (!carreraCompatible) {
+
+        Alert.alert(
+          "Carrera incompatible",
+          "El docente no pertenece a ninguna carrera asociada a la materia."
+        );
+
+        return;
+
+      }
+
+      const otrasAsignaciones =
+
+        asignaciones.filter(
+          a => a.id !== id
+        );
+
+      const asignacionesDocente =
+
+        otrasAsignaciones.filter(
+          a =>
+            a.docenteId ===
+            docenteId
+        );
+
+      for (
+        const nuevoHorario
+        of horarios
+      ) {
+
+        for (
+          const asignacion
+          of asignacionesDocente
+        ) {
+
+          for (
+            const existente
+            of asignacion.horarios
+          ) {
+
+            const mismoDia =
+
+              existente.dia ===
+              nuevoHorario.dia;
+
+            const traslape =
+
+              nuevoHorario.horaInicio <
+              existente.horaFin
+
+              &&
+
+              nuevoHorario.horaFin >
+              existente.horaInicio;
+
+            if (
+              mismoDia &&
+              traslape
+            ) {
+
+              Alert.alert(
+                "Conflicto de horario",
+                "El docente ya tiene clase en ese horario."
+              );
+
+              return;
 
             }
 
@@ -316,73 +400,77 @@ export default function EditarAsignacion() {
 
         }
 
-        await actualizarAsignacion(
-
-          id as string,
-
-          {
-
-            docenteId:
-              docente.id,
-
-            docenteNombre:
-              docente.nombre +
-              " " +
-              docente.apellidoPaterno,
-
-            materiaId:
-              materia.id,
-
-            materiaNombre:
-              materia.nombre,
-
-            grupo,
-
-            periodo,
-
-            horarios
-
-          }
-
-        );
-
-        Alert.alert(
-          "Éxito",
-          "Asignación actualizada"
-        );
-
-        router.back();
-
-      } catch {
-
-        Alert.alert(
-          "Error",
-          "No fue posible actualizar"
-        );
-
       }
 
-    };
+      await actualizarAsignacion(
+
+        id as string,
+
+        {
+
+          docenteId:
+            docente.id,
+
+          docenteNombre:
+            `${docente.nombre}
+             ${docente.apellidoPaterno}
+             ${docente.apellidoMaterno}`,
+
+          materiaId:
+            materia.id,
+
+          materiaNombre:
+            materia.nombre,
+
+          carrera,
+
+          semestre:
+            materia.semestre,
+
+          grupo,
+
+          cupo:
+            Number(cupo),
+
+          horarios,
+
+          estatus
+
+        }
+
+      );
+
+      Alert.alert(
+        "Éxito",
+        "Asignación actualizada"
+      );
+
+      router.back();
+
+    } catch (error) {
+
+      console.log(error);
+
+      Alert.alert(
+        "Error",
+        "No fue posible actualizar."
+      );
+
+    }
+
+  };
 
   return (
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.titulo}>Editar Asignación</Text>
 
-    <ScrollView
-      contentContainerStyle={
-        styles.container
-      }
-    >
-
-      <Text style={styles.titulo}>
-        Editar Asignación
+      <Text style={styles.sectionTitle}>
+        Información General
       </Text>
-
+      <Text style={styles.label}>Docente</Text>
       <View style={styles.picker}>
-        <Picker
-          selectedValue={docenteId}
-          onValueChange={
-            setDocenteId
-          }
-        >
+        <Picker selectedValue={docenteId} onValueChange={setDocenteId}>
+          <Picker.Item label="Seleccione un docente" value="" />
           {docentes.map(docente => (
             <Picker.Item
               key={docente.id}
@@ -393,188 +481,254 @@ export default function EditarAsignacion() {
         </Picker>
       </View>
 
+      <TextInput
+        placeholder="Cupo"
+        value={cupo}
+        onChangeText={setCupo}
+        keyboardType="numeric"
+        style={styles.input}
+      />
+
+      <Text style={styles.label}>Materia</Text>
       <View style={styles.picker}>
         <Picker
           selectedValue={materiaId}
-          onValueChange={
-            setMateriaId
-          }
+          onValueChange={(value) => {
+            setMateriaId(value);
+            const materia = materias.find(m => m.id === value);
+            if (materia?.carreras?.length === 1) {
+              setCarrera(materia.carreras[0]);
+            } else {
+              setCarrera("");
+            }
+          }}
         >
+          <Picker.Item label="Seleccione una materia" value="" />
           {materias.map(materia => (
-            <Picker.Item
-              key={materia.id}
-              label={materia.nombre}
-              value={materia.id}
-            />
+            <Picker.Item key={materia.id} label={materia.nombre} value={materia.id} />
           ))}
         </Picker>
       </View>
 
-      <TextInput
-        style={styles.input}
-        value={grupo}
-        onChangeText={setGrupo}
-        placeholder="Grupo"
-      />
+      <Text style={styles.label}>Carrera</Text>
+      <View style={styles.picker}>
+        <Picker selectedValue={carrera} onValueChange={setCarrera}>
+          <Picker.Item label="Seleccione una carrera" value="" />
+          {materias.find(m => m.id === materiaId)?.carreras?.map((c: string) => (
+            <Picker.Item key={c} label={c} value={c} />
+          ))}
+        </Picker>
+      </View>
 
-      <TextInput
-        style={styles.input}
-        value={periodo}
-        onChangeText={setPeriodo}
-        placeholder="Periodo"
-      />
+      <TextInput placeholder="Grupo" value={grupo} onChangeText={setGrupo} style={styles.input} />
+  
 
-      <Text style={styles.subtitulo}>
-        Horarios
-      </Text>
+      <Text style={styles.subtitulo}>Agregar Horario</Text>
+      <View style={styles.picker}>
+        <Picker selectedValue={dia} onValueChange={setDia}>
+          {dias.map(item => <Picker.Item key={item} label={item} value={item} />)}
+        </Picker>
+      </View>
+      <View style={styles.picker}>
+        <Picker selectedValue={horaInicio} onValueChange={setHoraInicio}>
+          {horas.map(item => <Picker.Item key={item} label={item} value={item} />)}
+        </Picker>
+      </View>
+      <View style={styles.picker}>
+        <Picker selectedValue={horaFin} onValueChange={setHoraFin}>
+          {horas.map(item => <Picker.Item key={item} label={item} value={item} />)}
+        </Picker>
+      </View>
 
-      {horarios.map(
-        (h, index) => (
+      <TouchableOpacity
+          style={styles.botonSecundario}
+          onPress={agregarHorario}
+        >
 
-          <View
-            key={index}
-            style={styles.card}
+          <Text
+            style={styles.textoBoton}
+          >
+            Agregar Horario
+          </Text>
+
+        </TouchableOpacity>
+
+      <Text style={styles.subtitulo}>Horarios Registrados</Text>
+      {horarios.map((horario, index) => (
+        <View key={index} style={styles.cardHorario}>
+          <Text
+            style={{
+              fontWeight: "600",
+              color: "#0F172A"
+            }}
           >
 
-            <Text>
-              {h.dia} | {h.horaInicio}
-              {" - "}
-              {h.horaFin}
-            </Text>
+            {horario.dia}
+            {" • "}
+            {horario.horaInicio}
+            {" - "}
+            {horario.horaFin}
 
-            <TouchableOpacity
-              onPress={() =>
-                eliminarHorario(index)
-              }
-            >
-              <Text
-                style={{
-                  color: "red"
-                }}
-              >
-                Eliminar
-              </Text>
-            </TouchableOpacity>
+          </Text>
+          <TouchableOpacity onPress={() => eliminarHorario(index)}>
+            <Text style={{ color: "red" }}>Eliminar</Text>
+          </TouchableOpacity>
+        </View>
+      ))}
 
-          </View>
+      <TouchableOpacity
+  style={styles.botonPrincipal}
+  onPress={guardarCambios}
+>
 
-        )
-      )}
+  <Text
+    style={styles.textoBoton}
+  >
+    Guardar Asignación
+  </Text>
 
-      <View style={styles.picker}>
-        <Picker
-          selectedValue={dia}
-          onValueChange={setDia}
-        >
-          {dias.map(d => (
-            <Picker.Item
-              key={d}
-              label={d}
-              value={d}
-            />
-          ))}
-        </Picker>
-      </View>
-
-      <View style={styles.picker}>
-        <Picker
-          selectedValue={horaInicio}
-          onValueChange={
-            setHoraInicio
-          }
-        >
-          {horas.map(h => (
-            <Picker.Item
-              key={h}
-              label={h}
-              value={h}
-            />
-          ))}
-        </Picker>
-      </View>
-
-      <View style={styles.picker}>
-        <Picker
-          selectedValue={horaFin}
-          onValueChange={
-            setHoraFin
-          }
-        >
-          {horas.map(h => (
-            <Picker.Item
-              key={h}
-              label={h}
-              value={h}
-            />
-          ))}
-        </Picker>
-      </View>
-
-      <Button
-        title="Agregar Horario"
-        onPress={agregarHorario}
-      />
-
-      <View
-        style={{
-          marginTop: 20
-        }}
-      >
-        <Button
-          title="Guardar Cambios"
-          onPress={
-            guardarCambios
-          }
-        />
-      </View>
-
+</TouchableOpacity>
     </ScrollView>
-
   );
-
 }
 
+
 const styles = StyleSheet.create({
+ container: {
 
-  container: {
-    padding: 20
-  },
+  padding: 20,
 
-  titulo: {
-    fontSize: 28,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center"
-  },
+  paddingBottom: 50,
 
-  subtitulo: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginVertical: 15
-  },
+  backgroundColor: "#F8FAFC"
 
+},
+titulo: {
+
+  fontSize: 32,
+
+  fontWeight: "bold",
+
+  textAlign: "center",
+
+  color: "#0F172A",
+
+  marginBottom: 25
+
+},
+  subtitulo: { fontSize: 18, fontWeight: "bold", marginVertical: 15 },
+  label: {
+
+  fontSize: 15,
+
+  fontWeight: "600",
+
+  color: "#334155",
+
+  marginBottom: 8
+
+},
   picker: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 10,
-    marginBottom: 12
-  },
 
+  borderWidth: 1,
+
+  borderColor: "#CBD5E1",
+
+  borderRadius: 12,
+
+  backgroundColor: "#FFFFFF",
+
+  marginBottom: 14
+
+},
   input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 12
-  },
 
-  card: {
-    backgroundColor: "#fff",
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 8,
-    flexDirection: "row",
-    justifyContent: "space-between"
-  }
+  borderWidth: 1,
 
+  borderColor: "#CBD5E1",
+
+  borderRadius: 12,
+
+  padding: 14,
+
+  backgroundColor: "#FFFFFF",
+
+  marginBottom: 14,
+
+  fontSize: 15
+
+},
+cardHorario: {
+
+  backgroundColor: "#FFFFFF",
+
+  borderRadius: 15,
+
+  padding: 15,
+
+  marginBottom: 12,
+
+  flexDirection: "row",
+
+  justifyContent: "space-between",
+
+  alignItems: "center",
+
+  borderWidth: 1,
+
+  borderColor: "#E2E8F0"
+
+},
+
+sectionTitle: {
+
+  fontSize: 20,
+
+  fontWeight: "700",
+
+  color: "#0F172A",
+
+  marginBottom: 15,
+
+  marginTop: 10
+
+},
+
+botonPrincipal: {
+
+  backgroundColor: "#2563EB",
+
+  padding: 16,
+
+  borderRadius: 12,
+
+  alignItems: "center",
+
+  marginTop: 20
+
+},
+
+botonSecundario: {
+
+  backgroundColor: "#0EA5E9",
+
+  padding: 14,
+
+  borderRadius: 12,
+
+  alignItems: "center",
+
+  marginBottom: 20
+
+},
+
+textoBoton: {
+
+  color: "#FFFFFF",
+
+  fontWeight: "bold",
+
+  fontSize: 16
+
+}
 });

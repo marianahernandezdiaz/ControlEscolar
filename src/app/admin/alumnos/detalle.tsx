@@ -1,19 +1,23 @@
 import { useEffect, useState } from "react";
 
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    View
+  ScrollView,
+  StyleSheet,
+  Text,
+  View
 } from "react-native";
 
 import {
-    useLocalSearchParams
+  useLocalSearchParams
 } from "expo-router";
 
 import {
-    obtenerAlumnoPorId
+  obtenerAlumnoPorId
 } from "../../../services/alumnoService";
+
+import {
+  Image
+} from "react-native";
 
 export default function DetalleAlumno() {
 
@@ -62,62 +66,75 @@ export default function DetalleAlumno() {
         Información del Alumno
       </Text>
 
-      <View style={styles.card}>
+<View style={styles.card}>
 
-        <Text style={styles.nombre}>
-          {alumno.nombre}
-          {" "}
-          {alumno.apellidoPaterno}
-          {" "}
-          {alumno.apellidoMaterno}
-        </Text>
+ <Image
+  source={{
+    uri:
+      alumno.foto ||
+      "https://via.placeholder.com/120"
+  }}
+  style={styles.avatar}
+/>
+  <Text style={styles.nombre}>
+    {alumno.nombre}
+    {" "}
+    {alumno.apellidoPaterno}
+    {" "}
+    {alumno.apellidoMaterno}
+  </Text>
 
-        <Item
-          label="Número de Control"
-          value={alumno.numeroControl}
-        />
+  <Text style={styles.numeroControl}>
+    {alumno.numeroControl}
+  </Text>
 
-        <Item
-          label="Edad"
-          value={alumno.edad}
-        />
+  <View style={styles.chipsContainer}>
 
-        <Item
-          label="Género"
-          value={alumno.genero}
-        />
+    <View style={styles.chip}>
+      <Text style={styles.chipText}>
+        {alumno.carrera}
+      </Text>
+    </View>
 
-        <Item
-          label="Teléfono"
-          value={alumno.telefono}
-        />
+    <View style={styles.chip}>
+      <Text style={styles.chipText}>
+        {alumno.semestre}° Semestre
+      </Text>
+    </View>
 
-        <Item
-          label="Correo"
-          value={alumno.correo}
-        />
+  </View>
 
-        <Item
-          label="Dirección"
-          value={alumno.direccion}
-        />
+  <Item
+    label="Edad"
+    value={alumno.edad}
+  />
 
-        <Item
-          label="Carrera"
-          value={alumno.carrera}
-        />
+  <Item
+    label="Género"
+    value={alumno.genero}
+  />
 
-        <Item
-          label="Semestre"
-          value={alumno.semestre}
-        />
+  <Item
+    label="Teléfono"
+    value={alumno.telefono}
+  />
 
-        <Item
-          label="Estatus"
-          value={alumno.estatus}
-        />
+  <Item
+    label="Correo"
+    value={alumno.correo}
+  />
 
-      </View>
+  <Item
+    label="Dirección"
+    value={alumno.direccion}
+  />
+
+  <Item
+    label="Estatus"
+    value={alumno.estatus}
+  />
+
+</View>
 
     </ScrollView>
 
@@ -135,19 +152,13 @@ function Item({
 
   return (
 
-    <View
-      style={styles.item}
-    >
+    <View style={styles.item}>
 
-      <Text
-        style={styles.label}
-      >
+      <Text style={styles.label}>
         {label}
       </Text>
 
-      <Text
-        style={styles.valor}
-      >
+      <Text style={styles.valor}>
         {value}
       </Text>
 
@@ -160,8 +171,14 @@ function Item({
 const styles = StyleSheet.create({
 
   container: {
-    padding: 20
-  },
+
+  padding: 20,
+
+  backgroundColor: "#F8FAFC",
+
+  flexGrow: 1
+
+},
 
   center: {
     flex: 1,
@@ -170,39 +187,139 @@ const styles = StyleSheet.create({
   },
 
   titulo: {
-    fontSize: 28,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center"
-  },
+
+  fontSize: 30,
+
+  fontWeight: "bold",
+
+  color: "#0F172A",
+
+  textAlign: "center",
+
+  marginBottom: 20
+
+},
 
   card: {
-    backgroundColor: "white",
-    borderRadius: 15,
-    padding: 20,
-    elevation: 4
-  },
+
+  backgroundColor: "#FFFFFF",
+
+  borderRadius: 20,
+
+  padding: 20,
+
+  elevation: 5,
+
+  shadowColor: "#000",
+
+  shadowOpacity: 0.08,
+
+  shadowRadius: 10
+
+},
 
   nombre: {
-    fontSize: 22,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
-    color: "#1565C0"
-  },
 
-  item: {
-    marginBottom: 15
-  },
+  fontSize: 24,
+
+  fontWeight: "bold",
+
+  textAlign: "center",
+
+  color: "#1565C0",
+
+  marginBottom: 5
+
+},
+item: {
+
+  marginBottom: 15,
+
+  borderBottomWidth: 1,
+
+  borderBottomColor: "#F1F5F9",
+
+  paddingBottom: 10
+
+},
 
   label: {
-    fontWeight: "bold",
-    color: "#555"
-  },
+
+  color: "#64748B",
+
+  fontSize: 14
+
+},
 
   valor: {
-    fontSize: 16,
-    marginTop: 3
-  }
+
+  fontSize: 16,
+
+  fontWeight: "600",
+
+  color: "#0F172A",
+
+  marginTop: 3
+
+},
+  avatar: {
+
+  width: 120,
+
+  height: 120,
+
+  borderRadius: 60,
+
+  alignSelf: "center",
+
+  marginBottom: 15
+
+},
+
+numeroControl: {
+
+  textAlign: "center",
+
+  color: "#64748B",
+
+  marginBottom: 15
+
+},
+
+chipsContainer: {
+
+  flexDirection: "row",
+
+  justifyContent: "center",
+
+  flexWrap: "wrap",
+
+  gap: 10,
+
+  marginBottom: 20
+
+},
+
+chip: {
+
+  backgroundColor: "#DBEAFE",
+
+  paddingHorizontal: 14,
+
+  paddingVertical: 8,
+
+  borderRadius: 20
+
+},
+
+chipText: {
+
+  color: "#2563EB",
+
+  fontWeight: "600"
+
+}
+
+
 
 });

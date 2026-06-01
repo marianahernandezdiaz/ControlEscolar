@@ -1,29 +1,35 @@
 import { Horario } from "./Horario";
 
-export interface Asignacion {
+export interface Inscripcion {
 
   id?: string;
 
-  docenteId: string;
-  docenteNombre: string;
+  alumnoId: string;
+
+  alumnoNombre: string;
+
+  numeroControl: string;
+
+  asignacionId: string;
 
   materiaId: string;
+
   materiaNombre: string;
+
+  docenteNombre: string;
+
+  grupo: string;
 
   carrera: string;
 
   semestre: number;
 
-  grupo: string;
-
   horarios: Horario[];
-
-  cupo: number;
 
   periodo: string;
 
   estatus: string;
 
-  fechaRegistro: Date;
+  fechaInscripcion: Date;
 
 }

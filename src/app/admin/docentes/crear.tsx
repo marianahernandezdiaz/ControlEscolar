@@ -1,20 +1,32 @@
 import { useState } from "react";
 
 import {
-    Alert,
-    Button,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View
+  Alert,
+  Button,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View
 } from "react-native";
 
-import Checkbox from "expo-checkbox";
 
 import {
-    crearDocente
+  crearDocente
 } from "../../../services/docenteService";
+
+import * as ImagePicker from "expo-image-picker";
+
+import { Picker } from "@react-native-picker/picker";
+
+import {
+  Image,
+  TouchableOpacity
+} from "react-native";
+
+import {
+  subirImagenCloudinary
+} from "../../../services/cloudinaryService";
 
 export default function CrearDocente() {
 
@@ -56,15 +68,195 @@ export default function CrearDocente() {
   ] = useState<string[]>([]);
 
   const carreras = [
-    "Ingeniería Industrial",
-    "Ingeniería en Logística",
     "Ingeniería Mecatrónica",
-    "Ingeniería Química",
     "Ingeniería en Sistemas Computacionales"
   ];
 
+  const especialidades = [
+
+  "Bases de Datos",
+
+  "Desarrollo Web",
+
+  "Desarrollo Móvil",
+
+  "Inteligencia Artificial",
+
+  "Redes y Telecomunicaciones",
+
+  "Ciberseguridad",
+
+  "Ingeniería de Software",
+
+  "Arquitectura de Computadoras",
+
+  "Robótica",
+
+  "Automatización Industrial",
+
+  "Electrónica",
+
+  "Sistemas Embebidos",
+
+  "Internet de las Cosas (IoT)"
+
+];
+
+  const tomarFoto = async () => {
+
+  const permiso =
+
+    await ImagePicker
+      .requestCameraPermissionsAsync();
+
+  if (!permiso.granted) {
+
+    Alert.alert(
+      "Permiso requerido",
+      "Se necesita acceso a la cámara."
+    );
+
+    return;
+
+  }
+
+const resultado =
+  await ImagePicker.launchCameraAsync({
+
+    allowsEditing: true,
+
+    aspect: [1, 1],
+
+    quality: 0.7,
+
+    base64: true
+
+  });
+
+  if (
+    !resultado.canceled
+  ) {
+
+    try {
+
+      setSubiendo(true);
+      
+      console.log(
+        resultado.assets[0]
+      );
+
+      console.log(
+        resultado.assets[0].uri
+      );
+
+      console.log(
+        resultado.assets[0].base64?.substring(0, 50)
+      );
+
+const url =
+  await subirImagenCloudinary(
+
+    resultado.assets[0].base64!
+
+  );
+
+      setFoto(url);
+
+      Alert.alert(
+        "Éxito",
+        "Foto cargada correctamente"
+      );
+
+    } catch (error) {
+
+  console.log(error);
+
+  Alert.alert(
+    "Error",
+    JSON.stringify(error)
+  );
+
+} finally {
+
+      setSubiendo(false);
+
+    }
+
+  }
+
+};
+
   const guardarDocente =
+
     async () => {
+
+      if (!numeroEmpleado.trim()) {
+
+  Alert.alert(
+    "Error",
+    "Ingrese el número de empleado."
+  );
+
+  return;
+
+}
+
+if (!nombre.trim()) {
+
+  Alert.alert(
+    "Error",
+    "Ingrese el nombre."
+  );
+
+  return;
+
+}
+
+if (!apellidoPaterno.trim()) {
+
+  Alert.alert(
+    "Error",
+    "Ingrese el apellido paterno."
+  );
+
+  return;
+
+}
+
+if (!correo.trim()) {
+
+  Alert.alert(
+    "Error",
+    "Ingrese el correo."
+  );
+
+  return;
+
+}
+
+if (!especialidad) {
+
+  Alert.alert(
+    "Error",
+    "Seleccione una especialidad."
+  );
+
+  return;
+
+}
+
+if (
+  carrerasSeleccionadas.length === 0
+) {
+
+  Alert.alert(
+    "Error",
+    "Seleccione al menos una carrera."
+  );
+
+  return;
+
+}
 
       try {
 
@@ -90,7 +282,9 @@ export default function CrearDocente() {
           estatus,
 
           fechaRegistro:
-            new Date()
+            new Date(),
+
+          foto
 
         });
 
@@ -108,7 +302,25 @@ export default function CrearDocente() {
 
       }
 
+setNumeroEmpleado("");
+setNombre("");
+setApellidoPaterno("");
+setApellidoMaterno("");
+setCorreo("");
+setTelefono("");
+setEspecialidad("");
+setCarrerasSeleccionadas([]);
+setFoto("");
+
     };
+
+  const [foto,
+  setFoto] =
+  useState("");
+
+  const [subiendo,
+  setSubiendo] =
+  useState(false);
 
   return (
 
@@ -121,6 +333,45 @@ export default function CrearDocente() {
       <Text style={styles.titulo}>
         Nuevo Docente
       </Text>
+
+      <TouchableOpacity
+  style={styles.avatarContainer}
+  onPress={tomarFoto}
+>
+
+  {foto ? (
+
+    <Image
+      source={{
+        uri: foto
+      }}
+      style={styles.avatar}
+    />
+
+  ) : (
+
+    <Text
+      style={styles.avatarText}
+    >
+      📸
+    </Text>
+
+  )}
+
+</TouchableOpacity>
+
+<Text
+  style={{
+    textAlign: "center",
+    marginBottom: 20
+  }}
+>
+
+  {subiendo
+    ? "Subiendo imagen..."
+    : "Tocar para tomar foto"}
+
+</Text>
 
       <TextInput
         placeholder="Número de Empleado"
@@ -170,72 +421,111 @@ export default function CrearDocente() {
         style={styles.input}
       />
 
-      <TextInput
-        placeholder="Especialidad"
-        value={especialidad}
-        onChangeText={
-          setEspecialidad
-        }
-        style={styles.input}
-      />
+<Text style={styles.sectionTitle}>
+  Especialidad
+</Text>
 
-      <Text style={styles.label}>
-        Carreras
-      </Text>
+<View style={styles.pickerContainer}>
 
-      {carreras.map(
-        (carrera) => (
+  <Picker
+    selectedValue={especialidad}
+    onValueChange={setEspecialidad}
+  >
 
-          <View
-            key={carrera}
-            style={styles.checkbox}
-          >
+    <Picker.Item
+      label="Seleccione una especialidad"
+      value=""
+    />
 
-            <Checkbox
+    {especialidades.map(
+      (esp) => (
 
-              value={
-                carrerasSeleccionadas.includes(
-                  carrera
-                )
-              }
+        <Picker.Item
+          key={esp}
+          label={esp}
+          value={esp}
+        />
 
-              onValueChange={
-                (checked) => {
+      )
+    )}
 
-                  if (checked) {
+  </Picker>
 
-                    setCarrerasSeleccionadas(
-                      prev => [
-                        ...prev,
-                        carrera
-                      ]
-                    );
+</View>
 
-                  } else {
+      <Text style={styles.sectionTitle}>
+  Carreras
+</Text>
 
-                    setCarrerasSeleccionadas(
-                      prev =>
-                        prev.filter(
-                          item =>
-                            item !== carrera
-                        )
-                    );
+<View style={styles.carrerasContainer}>
 
-                  }
+  {carreras.map((carrera) => {
 
-                }
-              }
+    const seleccionado =
 
-            />
+      carrerasSeleccionadas.includes(
+        carrera
+      );
 
-            <Text>
-              {carrera}
-            </Text>
+    return (
 
-          </View>
+      <TouchableOpacity
 
-        )
-      )}
+        key={carrera}
+
+        style={[
+
+          styles.carreraCard,
+
+          seleccionado &&
+          styles.carreraSeleccionada
+
+        ]}
+
+        onPress={() => {
+
+          if (seleccionado) {
+
+            setCarrerasSeleccionadas(
+
+              carrerasSeleccionadas.filter(
+                c => c !== carrera
+              )
+
+            );
+
+          } else {
+
+            setCarrerasSeleccionadas([
+              ...carrerasSeleccionadas,
+              carrera
+            ]);
+
+          }
+
+        }}
+
+      >
+
+        <Text
+          style={[
+            styles.carreraText,
+            seleccionado &&
+            styles.carreraTextSeleccionado
+          ]}
+        >
+
+          {carrera}
+
+        </Text>
+
+      </TouchableOpacity>
+
+    );
+
+  })}
+
+</View>
 
       <Button
         title="Guardar Docente"
@@ -252,16 +542,29 @@ export default function CrearDocente() {
 
 const styles = StyleSheet.create({
 
-  container: {
-    padding: 20
-  },
+ container: {
 
-  titulo: {
-    fontSize: 28,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center"
-  },
+  padding: 20,
+
+  backgroundColor: "#F8FAFC",
+
+  flexGrow: 1
+
+},
+
+titulo: {
+
+  fontSize: 32,
+
+  fontWeight: "bold",
+
+  color: "#0F172A",
+
+  textAlign: "center",
+
+  marginBottom: 25
+
+},
 
   label: {
     fontWeight: "bold",
@@ -281,6 +584,116 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 10,
     marginBottom: 10
-  }
+  },
+
+  avatarContainer: {
+
+  width: 140,
+
+  height: 140,
+
+  borderRadius: 70,
+
+  backgroundColor: "#E2E8F0",
+
+  alignSelf: "center",
+
+  justifyContent: "center",
+
+  alignItems: "center",
+
+  marginBottom: 10,
+
+  overflow: "hidden"
+
+},
+
+avatar: {
+
+  width: "100%",
+
+  height: "100%"
+
+},
+
+avatarText: {
+
+  fontSize: 50
+
+},
+
+sectionTitle: {
+
+  fontSize: 18,
+
+  fontWeight: "700",
+
+  color: "#1E293B",
+
+  marginBottom: 10,
+
+  marginTop: 15
+
+},
+
+pickerContainer: {
+
+  borderWidth: 1,
+
+  borderColor: "#CBD5E1",
+
+  borderRadius: 12,
+
+  backgroundColor: "#FFFFFF",
+
+  marginBottom: 15
+
+},
+
+carrerasContainer: {
+
+  gap: 10,
+
+  marginBottom: 20
+
+},
+
+carreraCard: {
+
+  padding: 15,
+
+  borderRadius: 12,
+
+  borderWidth: 1,
+
+  borderColor: "#CBD5E1",
+
+  backgroundColor: "#FFFFFF"
+
+},
+
+carreraSeleccionada: {
+
+  backgroundColor: "#DBEAFE",
+
+  borderColor: "#2563EB"
+
+},
+
+carreraText: {
+
+  fontSize: 15,
+
+  color: "#334155"
+
+},
+
+carreraTextSeleccionado: {
+
+  color: "#2563EB",
+
+  fontWeight: "bold"
+
+},
 
 });

@@ -20,12 +20,13 @@ export default function LoginScreen() {
       const usuario = await loginUser(correo, password);
 
       if (usuario?.rol === "admin") {
+        
         router.replace("/admin/dashboard_admin");
         return;
       }
 
       if (usuario?.rol === "alumno") {
-        router.replace("/alumnos/dashboard_alumno");
+        router.replace("/alumno/dashboard_alumno");
         return;
       }
 

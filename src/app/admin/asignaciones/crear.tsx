@@ -1,19 +1,19 @@
 import { Picker } from "@react-native-picker/picker";
 import { useEffect, useState } from "react";
 import {
-    Alert,
-    Button,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 
+import { PERIODO_ACTUAL } from "@/constants/preiodo";
 import {
-    crearAsignacion,
-    obtenerAsignaciones
+  crearAsignacion,
+  obtenerAsignaciones
 } from "../../../services/asignacionService";
 import { obtenerDocentes } from "../../../services/docenteService";
 import { obtenerMaterias } from "../../../services/materiaService";
@@ -24,9 +24,10 @@ export default function CrearAsignacion() {
   const [docenteId, setDocenteId] = useState("");
   const [materiaId, setMateriaId] = useState("");
   const [grupo, setGrupo] = useState("");
-  const [periodo, setPeriodo] = useState("");
   const [horarios, setHorarios] = useState<any[]>([]);
   const [asignaciones, setAsignaciones] = useState<any[]>([]);
+  const [carrera, setCarrera] = useState("");
+  const [cupo, setCupo] = useState("");
 
   const [dia, setDia] = useState("Lunes");
   const [horaInicio, setHoraInicio] = useState("07:00");
@@ -89,12 +90,16 @@ export default function CrearAsignacion() {
         Alert.alert("Error", "Ingrese un grupo.");
         return;
       }
-      if (!periodo.trim()) {
-        Alert.alert("Error", "Ingrese un periodo.");
-        return;
-      }
       if (horarios.length === 0) {
         Alert.alert("Error", "Agregue al menos un horario");
+        return;
+      }
+      if (Number(cupo) <= 0) {
+        Alert.alert("Error", "Ingrese un cupo válido.");
+        return;
+      }
+      if (!carrera.trim()) {
+        Alert.alert("Error", "Seleccione una carrera.");
         return;
       }
 
@@ -106,36 +111,112 @@ export default function CrearAsignacion() {
         return;
       }
 
-      const asignacionesDocente = asignaciones.filter(a => a.docenteId === docente.id);
-      for (const nuevoHorario of horarios) {
-        for (const asignacion of asignacionesDocente) {
-          for (const horarioExistente of asignacion.horarios) {
-            const mismoDia = horarioExistente.dia === nuevoHorario.dia;
-            const traslape =
-              nuevoHorario.horaInicio < horarioExistente.horaFin &&
-              nuevoHorario.horaFin > horarioExistente.horaInicio;
-            if (mismoDia && traslape) {
-              Alert.alert(
-                "Conflicto de horario",
-                `El docente ya tiene clase el ${nuevoHorario.dia} de ${horarioExistente.horaInicio} a ${horarioExistente.horaFin}`
-              );
-              return;
-            }
-          }
-        }
+      // Validar choque de horarios del docente
+
+const docenteOcupado =
+  asignaciones.some(
+    (asignacionExistente) => {
+
+      if (
+        asignacionExistente.docenteId !==
+        docente.id
+      ) {
+        return false;
       }
 
-      await crearAsignacion({
-        docenteId: docente.id,
-        docenteNombre: `${docente.nombre} ${docente.apellidoPaterno} ${docente.apellidoMaterno}`,
-        materiaId: materia.id,
-        materiaNombre: materia.nombre,
-        grupo,
-        horarios,
-        periodo,
-        estatus: "Activa",
-        fechaRegistro: new Date()
-      });
+      return horarios.some(
+        (nuevoHorario) =>
+
+          asignacionExistente.horarios?.some(
+            (horarioExistente: any) => {
+
+              if (
+                horarioExistente.dia !==
+                nuevoHorario.dia
+              ) {
+                return false;
+              }
+
+              return (
+
+                nuevoHorario.horaInicio <
+                  horarioExistente.horaFin
+
+                &&
+
+                nuevoHorario.horaFin >
+                  horarioExistente.horaInicio
+
+              );
+
+            }
+          )
+      );
+
+    }
+  );
+
+if (docenteOcupado) {
+
+  Alert.alert(
+
+    "Horario ocupado",
+
+    "El docente ya tiene una asignación en ese horario."
+
+  );
+
+  return;
+
+}
+
+      const existeGrupo = asignaciones.some(
+        a =>
+          a.materiaId === materia.id &&
+          a.carrera === carrera &&
+          a.grupo.toLowerCase().trim() === grupo.toLowerCase().trim() 
+      );
+      if (existeGrupo) {
+        Alert.alert("Grupo duplicado", "Ya existe una asignación para esa materia, carrera, grupo y periodo.");
+        return;
+      }
+
+await crearAsignacion({
+
+  docenteId: docente.id,
+
+  docenteNombre:
+    `${docente.nombre}
+     ${docente.apellidoPaterno}
+     ${docente.apellidoMaterno}`,
+
+  materiaId: materia.id,
+
+  materiaNombre:
+    materia.nombre,
+
+  carrera,
+
+  semestre:
+    materia.semestre,
+
+  grupo,
+
+  cupo:
+    Number(cupo),
+
+  horarios,
+
+  periodo:
+    PERIODO_ACTUAL,
+
+  estatus:
+    "Activa",
+
+  fechaRegistro:
+    new Date()
+
+});
 
       Alert.alert("Éxito", "Asignación creada");
     } catch (error) {
@@ -148,6 +229,9 @@ export default function CrearAsignacion() {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.titulo}>Nueva Asignación</Text>
 
+      <Text style={styles.sectionTitle}>
+        Información General
+      </Text>
       <Text style={styles.label}>Docente</Text>
       <View style={styles.picker}>
         <Picker selectedValue={docenteId} onValueChange={setDocenteId}>
@@ -162,9 +246,28 @@ export default function CrearAsignacion() {
         </Picker>
       </View>
 
+      <TextInput
+        placeholder="Cupo"
+        value={cupo}
+        onChangeText={setCupo}
+        keyboardType="numeric"
+        style={styles.input}
+      />
+
       <Text style={styles.label}>Materia</Text>
       <View style={styles.picker}>
-        <Picker selectedValue={materiaId} onValueChange={setMateriaId}>
+        <Picker
+          selectedValue={materiaId}
+          onValueChange={(value) => {
+            setMateriaId(value);
+            const materia = materias.find(m => m.id === value);
+            if (materia?.carreras?.length === 1) {
+              setCarrera(materia.carreras[0]);
+            } else {
+              setCarrera("");
+            }
+          }}
+        >
           <Picker.Item label="Seleccione una materia" value="" />
           {materias.map(materia => (
             <Picker.Item key={materia.id} label={materia.nombre} value={materia.id} />
@@ -172,8 +275,18 @@ export default function CrearAsignacion() {
         </Picker>
       </View>
 
+      <Text style={styles.label}>Carrera</Text>
+      <View style={styles.picker}>
+        <Picker selectedValue={carrera} onValueChange={setCarrera}>
+          <Picker.Item label="Seleccione una carrera" value="" />
+          {materias.find(m => m.id === materiaId)?.carreras?.map((c: string) => (
+            <Picker.Item key={c} label={c} value={c} />
+          ))}
+        </Picker>
+      </View>
+
       <TextInput placeholder="Grupo" value={grupo} onChangeText={setGrupo} style={styles.input} />
-      <TextInput placeholder="Periodo" value={periodo} onChangeText={setPeriodo} style={styles.input} />
+
 
       <Text style={styles.subtitulo}>Agregar Horario</Text>
       <View style={styles.picker}>
@@ -192,36 +305,195 @@ export default function CrearAsignacion() {
         </Picker>
       </View>
 
-      <Button title="Agregar Horario" onPress={agregarHorario} />
+      <TouchableOpacity
+          style={styles.botonSecundario}
+          onPress={agregarHorario}
+        >
+
+          <Text
+            style={styles.textoBoton}
+          >
+            Agregar Horario
+          </Text>
+
+        </TouchableOpacity>
 
       <Text style={styles.subtitulo}>Horarios Registrados</Text>
       {horarios.map((horario, index) => (
         <View key={index} style={styles.cardHorario}>
-          <Text>{horario.dia} - {horario.horaInicio} a {horario.horaFin}</Text>
+          <Text
+            style={{
+              fontWeight: "600",
+              color: "#0F172A"
+            }}
+          >
+
+            {horario.dia}
+            {" • "}
+            {horario.horaInicio}
+            {" - "}
+            {horario.horaFin}
+
+          </Text>
           <TouchableOpacity onPress={() => eliminarHorario(index)}>
             <Text style={{ color: "red" }}>Eliminar</Text>
           </TouchableOpacity>
         </View>
       ))}
 
-      <Button title="Guardar Asignación" onPress={guardarAsignacion} />
+      <TouchableOpacity
+  style={styles.botonPrincipal}
+  onPress={guardarAsignacion}
+>
+
+  <Text
+    style={styles.textoBoton}
+  >
+    Guardar Asignación
+  </Text>
+
+</TouchableOpacity>
     </ScrollView>
   );
 }
 
+
 const styles = StyleSheet.create({
-  container: { padding: 20 },
-  titulo: { fontSize: 28, fontWeight: "bold", marginBottom: 20, textAlign: "center" },
+ container: {
+
+  padding: 20,
+
+  paddingBottom: 50,
+
+  backgroundColor: "#F8FAFC"
+
+},
+titulo: {
+
+  fontSize: 32,
+
+  fontWeight: "bold",
+
+  textAlign: "center",
+
+  color: "#0F172A",
+
+  marginBottom: 25
+
+},
   subtitulo: { fontSize: 18, fontWeight: "bold", marginVertical: 15 },
-  label: { fontWeight: "bold", marginBottom: 8 },
-  picker: { borderWidth: 1, borderColor: "#ccc", borderRadius: 10, marginBottom: 12 },
-  input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 10, padding: 12, marginBottom: 12 },
-  cardHorario: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 10,
-    flexDirection: "row",
-    justifyContent: "space-between"
-  }
+  label: {
+
+  fontSize: 15,
+
+  fontWeight: "600",
+
+  color: "#334155",
+
+  marginBottom: 8
+
+},
+  picker: {
+
+  borderWidth: 1,
+
+  borderColor: "#CBD5E1",
+
+  borderRadius: 12,
+
+  backgroundColor: "#FFFFFF",
+
+  marginBottom: 14
+
+},
+  input: {
+
+  borderWidth: 1,
+
+  borderColor: "#CBD5E1",
+
+  borderRadius: 12,
+
+  padding: 14,
+
+  backgroundColor: "#FFFFFF",
+
+  marginBottom: 14,
+
+  fontSize: 15
+
+},
+cardHorario: {
+
+  backgroundColor: "#FFFFFF",
+
+  borderRadius: 15,
+
+  padding: 15,
+
+  marginBottom: 12,
+
+  flexDirection: "row",
+
+  justifyContent: "space-between",
+
+  alignItems: "center",
+
+  borderWidth: 1,
+
+  borderColor: "#E2E8F0"
+
+},
+
+sectionTitle: {
+
+  fontSize: 20,
+
+  fontWeight: "700",
+
+  color: "#0F172A",
+
+  marginBottom: 15,
+
+  marginTop: 10
+
+},
+
+botonPrincipal: {
+
+  backgroundColor: "#2563EB",
+
+  padding: 16,
+
+  borderRadius: 12,
+
+  alignItems: "center",
+
+  marginTop: 20
+
+},
+
+botonSecundario: {
+
+  backgroundColor: "#0EA5E9",
+
+  padding: 14,
+
+  borderRadius: 12,
+
+  alignItems: "center",
+
+  marginBottom: 20
+
+},
+
+textoBoton: {
+
+  color: "#FFFFFF",
+
+  fontWeight: "bold",
+
+  fontSize: 16
+
+}
 });
