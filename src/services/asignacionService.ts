@@ -1,15 +1,19 @@
 import {
-    addDoc,
-    collection,
-    deleteDoc,
-    doc,
-    getDoc,
-    onSnapshot,
-    updateDoc
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  onSnapshot,
+  updateDoc
 } from "firebase/firestore";
 
 import { db } from "./firebase";
 
+import {
+  query,
+  where
+} from "firebase/firestore";
 import { Asignacion } from "../models/Asignacion";
 
 export const crearAsignacion = async (
@@ -128,6 +132,53 @@ export const obtenerAsignaciones = (
           id: doc.id,
           ...doc.data()
         }))
+
+      );
+
+    }
+
+  );
+
+};
+
+export const escucharAsignacionesDocente =
+(
+  docenteId: string,
+  callback: (datos: any[]) => void
+) => {
+
+  const q = query(
+
+    collection(
+      db,
+      "asignaciones"
+    ),
+
+    where(
+      "docenteId",
+      "==",
+      docenteId
+    )
+
+  );
+
+  return onSnapshot(
+
+    q,
+
+    (snapshot) => {
+
+      callback(
+
+        snapshot.docs.map(
+          doc => ({
+
+            id: doc.id,
+
+            ...doc.data()
+
+          })
+        )
 
       );
 

@@ -14,6 +14,8 @@ import {
   onSnapshot
 } from "firebase/firestore";
 
+
+
 const inscripcionesRef =
   collection(
     db,
@@ -186,3 +188,142 @@ export const obtenerInscripcionPorAsignacion =
     );
 
   };
+
+  export const escucharInscripcionesAsignacion =
+(
+  asignacionId: string,
+  callback: (datos: any[]) => void
+) => {
+
+  const q = query(
+
+    inscripcionesRef,
+
+    where(
+      "asignacionId",
+      "==",
+      asignacionId
+    )
+
+  );
+
+  return onSnapshot(
+
+    q,
+
+    (snapshot) => {
+
+      callback(
+
+        snapshot.docs.map(
+          doc => ({
+
+            id: doc.id,
+
+            ...doc.data()
+
+          })
+        )
+
+      );
+
+    }
+
+  );
+
+};
+
+export const escucharInscripcionesDocente =
+(
+  docenteNombre: string,
+  callback: (datos: any[]) => void
+) => {
+
+  return onSnapshot(
+
+    inscripcionesRef,
+
+    (snapshot) => {
+
+      const datos =
+
+        snapshot.docs
+          .map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }))
+          .filter((item: any) => {
+
+            const nombreFirestore =
+
+              item.docenteNombre
+                ?.replace(/\s+/g, " ")
+                .trim()
+                .toLowerCase();
+
+            const nombreDocente =
+
+              docenteNombre
+                .replace(/\s+/g, " ")
+                .trim()
+                .toLowerCase();
+
+            return (
+              nombreFirestore ===
+              nombreDocente
+            );
+
+          });
+
+      callback(datos);
+
+    }
+
+  );
+
+};
+
+export const escucharAlumnosAsignacion =
+(
+  asignacionId: string,
+  callback: (datos: any[]) => void
+) => {
+
+  const q = query(
+
+    inscripcionesRef,
+
+    where(
+      "asignacionId",
+      "==",
+      asignacionId
+    )
+
+  );
+
+  return onSnapshot(
+
+    q,
+
+    (snapshot) => {
+
+      callback(
+
+        snapshot.docs.map(
+          doc => ({
+
+            id: doc.id,
+
+            ...doc.data()
+
+          })
+        )
+
+      );
+
+    }
+
+  );
+
+};
+

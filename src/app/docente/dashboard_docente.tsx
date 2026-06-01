@@ -14,40 +14,48 @@ import { router } from "expo-router";
 import { auth } from "../../services/firebase";
 
 import {
-  obtenerAlumnoPorCorreo
-} from "../../services/alumnoService";
+  obtenerDocentePorCorreo
+} from "../../services/docenteService";
 
 import {
   logoutUser
 } from "../../services/authService";
 
-export default function DashboardAlumno() {
+export default function DashboardDocente() {
 
-  const [alumno,
-    setAlumno] =
+  const [docente,
+    setDocente] =
     useState<any>(null);
 
   useEffect(() => {
 
-    cargarAlumno();
+    cargarDocente();
 
   }, []);
 
-  const cargarAlumno =
+  const cargarDocente =
     async () => {
 
-      const correo =
-        auth.currentUser?.email;
+      try {
 
-      if (!correo) return;
+        const correo =
+          auth.currentUser?.email;
 
-      const datos =
+        if (!correo) return;
 
-        await obtenerAlumnoPorCorreo(
-          correo
-        );
+        const datos =
 
-      setAlumno(datos);
+          await obtenerDocentePorCorreo(
+            correo
+          );
+
+        setDocente(datos);
+
+      } catch (error) {
+
+        console.log(error);
+
+      }
 
     };
 
@@ -56,7 +64,9 @@ export default function DashboardAlumno() {
 
       await logoutUser();
 
-      router.replace("/auth/login");
+      router.replace(
+        "/auth/login"
+      );
 
     };
 
@@ -69,38 +79,34 @@ export default function DashboardAlumno() {
     >
 
       <Text style={styles.titulo}>
-        Portal del Alumno
+        Portal del Docente
       </Text>
 
-      {alumno && (
+      {docente && (
 
-        <View style={styles.perfilCard}>
+        <View style={styles.cardPerfil}>
 
           <Image
             source={{
-              uri: alumno.foto
+              uri: docente.foto
             }}
             style={styles.foto}
           />
 
           <Text style={styles.nombre}>
 
-            {alumno.nombre}
+            {docente.nombre}
             {" "}
-            {alumno.apellidoPaterno}
+            {docente.apellidoPaterno}
 
           </Text>
 
-          <Text style={styles.info}>
-
-            {alumno.carrera}
-
+          <Text style={styles.especialidad}>
+            {docente.especialidad}
           </Text>
 
-          <Text style={styles.info}>
-
-            Semestre {alumno.semestre}
-
+          <Text style={styles.estatus}>
+            {docente.estatus}
           </Text>
 
         </View>
@@ -108,49 +114,45 @@ export default function DashboardAlumno() {
       )}
 
       <MenuCard
-        titulo="📚 Inscripciones"
+        titulo="📚 Mis Asignaciones"
+        subtitulo="Consultar materias asignadas"
         onPress={() =>
           router.push(
-            "/alumno/inscripciones"
+            "/docente/misAsignaciones"
           )
         }
       />
 
       <MenuCard
-        titulo="📖 Mis Materias"
+        titulo="👨‍🎓 Mis Alumnos"
+        subtitulo="Ver alumnos inscritos"
         onPress={() =>
           router.push(
-            "/alumno/misMaterias"
-          )
-        }
-      />
-
-      <MenuCard
-        titulo="🕒 Mi Horario"
-        onPress={() =>
-          router.push(
-            "/alumno/horario"
+            "/docente/misAlumnos"
           )
         }
       />
 
       <MenuCard
         titulo="📝 Calificaciones"
+        subtitulo="Capturar y consultar"
         onPress={() =>
           router.push(
-            "/alumno/calificaciones"
+            "/docente/calificaciones"
           )
         }
       />
 
       <MenuCard
         titulo="👤 Mi Perfil"
+        subtitulo="Información personal"
         onPress={() =>
           router.push(
-            "/alumno/perfil"
+            "/docente/perfil"
           )
         }
       />
+
 
 
     </ScrollView>
@@ -161,6 +163,7 @@ export default function DashboardAlumno() {
 
 function MenuCard({
   titulo,
+  subtitulo,
   onPress
 }: any) {
 
@@ -171,10 +174,12 @@ function MenuCard({
       onPress={onPress}
     >
 
-      <Text
-        style={styles.menuText}
-      >
+      <Text style={styles.menuTitulo}>
         {titulo}
+      </Text>
+
+      <Text style={styles.menuSubtitulo}>
+        {subtitulo}
       </Text>
 
     </TouchableOpacity>
@@ -187,11 +192,11 @@ const styles = StyleSheet.create({
 
   container: {
 
+    flexGrow: 1,
+
     padding: 20,
 
-    backgroundColor: "#F8FAFC",
-
-    flexGrow: 1
+    backgroundColor: "#F8FAFC"
 
   },
 
@@ -209,13 +214,13 @@ const styles = StyleSheet.create({
 
   },
 
-  perfilCard: {
+  cardPerfil: {
 
     backgroundColor: "#FFFFFF",
 
     borderRadius: 20,
 
-    padding: 20,
+    padding: 25,
 
     alignItems: "center",
 
@@ -243,15 +248,29 @@ const styles = StyleSheet.create({
 
     fontWeight: "bold",
 
-    color: "#1565C0"
+    color: "#1565C0",
+
+    textAlign: "center"
 
   },
 
-  info: {
+  especialidad: {
 
     marginTop: 5,
 
-    color: "#64748B"
+    color: "#475569",
+
+    fontSize: 16
+
+  },
+
+  estatus: {
+
+    marginTop: 5,
+
+    color: "#22C55E",
+
+    fontWeight: "600"
 
   },
 
@@ -259,7 +278,7 @@ const styles = StyleSheet.create({
 
     backgroundColor: "#FFFFFF",
 
-    borderRadius: 15,
+    borderRadius: 18,
 
     padding: 20,
 
@@ -269,27 +288,37 @@ const styles = StyleSheet.create({
 
   },
 
-  menuText: {
+  menuTitulo: {
 
     fontSize: 18,
 
-    fontWeight: "600",
+    fontWeight: "bold",
 
-    color: "#0F172A"
+    color: "#1565C0"
+
+  },
+
+  menuSubtitulo: {
+
+    marginTop: 4,
+
+    color: "#64748B"
 
   },
 
   logout: {
 
-    marginTop: 20,
-
     backgroundColor: "#1565C0",
 
-    padding: 15,
+    padding: 16,
 
     borderRadius: 15,
 
-    alignItems: "center"
+    alignItems: "center",
+
+    marginTop: 10,
+
+    marginBottom: 40
 
   },
 

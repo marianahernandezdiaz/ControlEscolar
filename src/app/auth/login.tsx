@@ -2,10 +2,11 @@ import { router } from "expo-router";
 import { useState } from "react";
 import {
   Alert,
-  Button,
   Pressable,
+  StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View
 } from "react-native";
 
@@ -20,7 +21,6 @@ export default function LoginScreen() {
       const usuario = await loginUser(correo, password);
 
       if (usuario?.rol === "admin") {
-        
         router.replace("/admin/dashboard_admin");
         return;
       }
@@ -31,7 +31,7 @@ export default function LoginScreen() {
       }
 
       if (usuario?.rol === "docente") {
-        router.replace("/docentes/dashboard_docente");
+        router.replace("/docente/dashboard_docente");
         return;
       }
 
@@ -42,37 +42,89 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={{ flex: 1, justifyContent: "center", padding: 20 }}>
+    <View style={styles.container}>
+      <Text style={styles.titulo}>Control Escolar</Text>
+
       <TextInput
-        placeholder="Correo"
+        placeholder="Correo institucional"
         value={correo}
         onChangeText={setCorreo}
-        style={{ marginBottom: 10, borderWidth: 1, padding: 8 }}
+        style={styles.input}
+        keyboardType="email-address"
       />
       <TextInput
         placeholder="Contraseña"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
-        style={{ marginBottom: 10, borderWidth: 1, padding: 8 }}
+        style={styles.input}
       />
-      <Button title="Iniciar sesión" onPress={handleLogin} />
+
+      <TouchableOpacity style={styles.boton} onPress={handleLogin}>
+        <Text style={styles.botonTexto}>Iniciar sesión</Text>
+      </TouchableOpacity>
+
       <Pressable
         onPress={() => router.push("/auth/register")}
-        style={{
-          marginTop: 20,
-          alignItems: "center"
-        }}
+        style={styles.linkContainer}
       >
-        <Text
-          style={{
-            color: "blue",
-            fontSize: 16
-          }}
-        >
+        <Text style={styles.linkTexto}>
           ¿No tienes cuenta? Regístrate aquí
         </Text>
       </Pressable>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    padding: 25,
+    backgroundColor: "#F1F5F9"
+  },
+  titulo: {
+    fontSize: 28,
+    fontWeight: "700",
+    textAlign: "center",
+    marginBottom: 30,
+    color: "#1565C0",
+    letterSpacing: 0.5
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 16,
+    backgroundColor: "#FFFFFF",
+    fontSize: 15,
+    elevation: 1
+  },
+  boton: {
+    backgroundColor: "#1565C0",
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    marginTop: 10,
+    shadowColor: "#1565C0",
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 }
+  },
+  botonTexto: {
+    color: "#FFF",
+    fontSize: 16,
+    fontWeight: "700",
+    letterSpacing: 0.5
+  },
+  linkContainer: {
+    marginTop: 25,
+    alignItems: "center"
+  },
+  linkTexto: {
+    color: "#2563EB",
+    fontSize: 15,
+    fontWeight: "600"
+  }
+});
